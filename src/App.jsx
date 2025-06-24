@@ -13,7 +13,7 @@ import ViewBookedAppointment from './salonPages/ViewBookedAppointment'
 import LandingPage from './landingComponent/LandingPage'
 import CustomerSalonDeatil from './customerPages/CustomerSalonDeatil'
 import { Route, Routes } from 'react-router-dom'
-import CustomerDashboard from './customerPages/customerDashBoard'
+import CustomerDashboard from './customerPages/CustomerDashBoard'
 import CustomerProfile from './customerPages/CustomerProfile'
 
 const App = () => {
