@@ -7,7 +7,7 @@ import { io } from 'socket.io-client';
 import axios from 'axios';
 
 // ✅ Place socket outside component to avoid re-connection on every render
-const socket = io('http://localhost:8080');
+const socket = io(`${import.meta.env.VITE_BACKEND_URL}`);
 
 export default function NewAppointments() {
   const salon = useSelector((state) => state?.salon?.salon)?.salon;
