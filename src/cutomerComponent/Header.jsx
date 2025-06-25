@@ -20,14 +20,19 @@ const Header = ({ customer }) => {
   function profile (){
     navigate('/customer/profile') ;
   }
+  function home(){
+    navigate('/customer') ;
+  }
 
   return (
     <header className="bg-white shadow-md border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center justify-between">
         {/* Branding */}
-        <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+        <button
+        onClick={home}
+         className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
           ✂️ SalonHub
-        </h1>
+        </button>
 
         {/* Right side */}
         {customer && (
