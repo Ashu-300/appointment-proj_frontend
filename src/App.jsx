@@ -30,7 +30,7 @@ const App = () => {
       <Route path='/customer/profile' element={<CustomerProfile/>}/>
       <Route path='/salon' element={<SalonHome/>} />
       <Route path='/salon' element={
-        <SalonAuthWrapper>
+        <SalonAuthWrapper> 
           <SalonHome/>
         </SalonAuthWrapper>
         }/>
