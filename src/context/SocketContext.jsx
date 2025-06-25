@@ -1,15 +1,13 @@
-import React from 'react'
-import { createContext } from 'react'
-import {initializeSocketIO} from '../utils/socket'
-import { useEffect } from 'react'
-import { useContext } from 'react'
-import { useState } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { initializeSocketIO } from '../utils/socket';
 
-const socketContext = createContext(null)
+const socketContext = createContext(null);
 
-const SocketContext = ({children}) => {
+const SocketContext = ({ children }) => {
     const [socket, setSocket] = useState(null);
-    const token = localStorage.getItem('token');
+    const customertoken = localStorage.getItem('customerToken');
+    const salontoken = localStorage.getItem('salonToken');
+    const token = customertoken || salontoken;
 
     useEffect(() => {
         if (token) {
@@ -17,23 +15,25 @@ const SocketContext = ({children}) => {
             setSocket(newSocket);
 
             newSocket.on('connect', () => {
-                console.log('socket connected', newSocket.id);
-            })
+                console.log('✅ Socket connected:', newSocket.id);
+            });
 
-            return () => newSocket.disconnect(); // ✅ only runs if socket was created
+            newSocket.on('connect_error', (err) => {
+                console.error('❌ Socket connection failed:', err.message);
+            });
+
+            return () => newSocket.disconnect(); // Cleanup on unmount
         }
     }, [token]);
 
-  return (
-    <div>
+    return (
         <socketContext.Provider value={socket}>
             {children}
         </socketContext.Provider>
-    </div>
-  )
-}
+    );
+};
 
 export default SocketContext;
-export const useSocket = () => {
-    return useContext(SocketContext);
-}
+
+// ✅ Correct usage of the context object
+export const useSocket = () => useContext(socketContext);

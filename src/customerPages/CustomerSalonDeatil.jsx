@@ -6,14 +6,17 @@ import { useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { io } from "socket.io-client";
 import Header from '../cutomerComponent/Header';
+import { useSocket } from '../context/SocketContext';
 
-const socket = io(`${import.meta.env.VITE_BACKEND_URL}`, {
-  withCredentials: true,
-});
+// const socket = io(`${import.meta.env.VITE_BACKEND_URL}`, {
+//   withCredentials: true,
+// });
 
 
 
 const CustomerSalonDetails = () => {
+  const socket = useSocket() ;
+
   
 const {register , handleSubmit , reset , watch , formState:{errors}   } = useForm()
 
@@ -35,7 +38,7 @@ const customer = JSON.parse(localStorage.getItem('customerInfo'));
 const token = localStorage.getItem('customerToken') ;
 
 useEffect(() => {
-   
+     if (!socket || !customer?._id) return;
   socket.emit('customer_joined' , customer._id) ;
   socket.on('booking_confirmed', async ( booking ) => {
     console.log('✅ Booking confirmed from salon:', booking);
@@ -54,10 +57,15 @@ useEffect(() => {
     socket.off('booking_confirmed');
     socket.off('booking_decline');
   };
-}, []);
+}, [socket, customer?._id]);
 
  // booking handler
   const handleBooking = async () => {
+      if (!socket) {
+    console.warn("Socket is not connected yet. Please wait...");
+    alert("Unable to send booking request. Try again after a moment.");
+    return;
+  }
     try {
        socket.emit('customerBookingRequest' , {
          services : selectedServices,

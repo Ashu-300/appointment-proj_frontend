@@ -5,11 +5,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addBooking } from '../redux/slices/BookingSlice';
 import { io } from 'socket.io-client';
 import axios from 'axios';
+import { useSocket } from '../context/SocketContext';
 
 // ✅ Place socket outside component to avoid re-connection on every render
-const socket = io(`${import.meta.env.VITE_BACKEND_URL}`);
+// const socket = io(`${import.meta.env.VITE_BACKEND_URL}`);
 
 export default function NewAppointments() {
+  const socket = useSocket() ;
+
   const salon = useSelector((state) => state?.salon?.salon)?.salon;
 
   
@@ -41,14 +44,14 @@ export default function NewAppointments() {
   if (salon?._id) {
     fetchExistingBookings();
   }
-}, [salon?._id]);
+}, [salon?._id, socket]);
 
 
     
    
 
   useEffect(() => {
-    if (!salon?._id) return;
+     if (!salon?._id || !socket) return;
 
     // ✅ Salon joins as online
     socket.emit('salon_owner_join', salon._id);
