@@ -4,7 +4,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearBookingById } from '../redux/slices/BookingSlice';
 import axios from 'axios';
-import { io } from 'socket.io-client';
+import { useSocket } from '../context/SocketContext';
 
 export default function AppointApprovalPage() {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ export default function AppointApprovalPage() {
   const [bookings, setbookings] = useState([]);
   const salon = useSelector((state) => state?.salon?.salon)?.salon;
   const salontoken = localStorage.getItem('salonToken') ;
-  const socket = io('http://localhost:8080');
+  const socket = useSocket();
   
   const location = useLocation();
   const {  booking } = location.state || {};
@@ -22,7 +22,7 @@ export default function AppointApprovalPage() {
   useEffect(() => {
   const fetchExistingBookings = async () => {
     try {
-      const response = await axios.get(`http://localhost:8080/salon/${salon.email}/allbooking` , {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/salon/${salon.email}/allbooking` , {
         headers : {
           Authorization: `Bearer ${salontoken}`
         }
@@ -56,23 +56,29 @@ export default function AppointApprovalPage() {
     const updatedBooking = {
       ...booking,
       status: 'confirmed',
-      slot: selectedSlot, // Or update `slots: [selectedSlot]` if that's your schema
+      slot: selectedSlot,
     };
 
     const token = localStorage.getItem('salonToken');
 
-    // ✅ Call API with correct booking ID
-    await axios.put(`${import.meta.env.VITE_BACKEND_URL}/salon/booking/confirm/${booking._id}`, updatedBooking, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    await axios.put(
+      `${import.meta.env.VITE_BACKEND_URL}/salon/booking/confirm/${booking._id}`,
+      updatedBooking,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
-    // ✅ Emit via socket to customer
-    socket.emit('booking_confirmed', {
-      customerId: booking.customerId,
-      booking: updatedBooking,
-    });
+    if (socket) {
+      socket.emit('booking_confirmed', {
+        customerId: booking.customerId,
+        booking: updatedBooking,
+      });
+    } else {
+      console.warn("Socket not ready. Cannot emit booking_confirmed");
+    }
 
     alert(`Appointment confirmed for ${booking.customerName} at ${selectedSlot}`);
     navigate('/salon/new-appointments', {
@@ -86,16 +92,27 @@ export default function AppointApprovalPage() {
 
 
   const handleDecline = (booking) => {
-    // Handle decline logic here
-     socket.emit('booking_decline', {
+  if (socket) {
+    socket.emit('booking_decline', {
       bookingId: booking._id,
       customerId: booking.customerId,
       booking: booking,
     });
+  } else {
+    console.warn("Socket not ready. Cannot emit booking_decline");
+  }
 
-    alert(`Appointment declined for ${customer.name}`);
-    navigate('/salon/new-appointments');
-  };
+  alert(`Appointment declined for ${customer.name}`);
+  navigate('/salon/new-appointments');
+};
+ // ✅ ADD THIS fallback before the return JSX
+  if (!socket) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-600">
+        Connecting to server...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
